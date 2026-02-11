@@ -79,6 +79,69 @@ public class Tests
     }
 
     [Test]
+    public void Kindergarten_Create_InvalidChildrenCount_ShowsError()
+    {
+        Assert.That(_driver, Is.Not.Null);
+
+        NavigateTo($"{BaseUrl}/Kindergarten");
+        var initialRowCount = CountElements(By.CssSelector("table tbody tr"));
+
+        NavigateTo($"{BaseUrl}/Kindergarten/Create");
+
+        var groupName = $"INVALID_CREATE_GROUP_{DateTime.UtcNow:HHmmss}";
+
+        FillInput(By.Id("GroupName"), groupName);
+        FillInput(By.Id("KindergartenName"), "Sunshine KG");
+        SetInputValue(By.Id("ChildrenCount"), "A");
+        FillInput(By.Id("TeacherName"), "Ms. Smith");
+
+        var imagePath = ResolveAssetPath("TestAssets/pilt.jpg");
+        WaitForElement(By.Id("imageFiles")).SendKeys(imagePath);
+
+        Click(By.CssSelector("button[type='submit'].btn-success"));
+
+        WaitUntil(driver => driver.Url.Contains("/Kindergarten/Create", StringComparison.OrdinalIgnoreCase), TimeSpan.FromSeconds(10));
+        var childrenInput = WaitForElement(By.Id("ChildrenCount"));
+        var currentValue = childrenInput.GetDomProperty("value") ?? string.Empty;
+        Assert.That(currentValue, Is.Not.EqualTo("A"), "ChildrenCount input accepted invalid letter");
+
+        NavigateTo($"{BaseUrl}/Kindergarten");
+        WaitUntil(_ => CountElements(By.CssSelector("table tbody tr")) <= initialRowCount, TimeSpan.FromSeconds(10));
+        Assert.That(RowExistsInTable(groupName), Is.False);
+    }
+
+    [Test]
+    public void Spaceships_Create_InvalidCrew_ShowsError()
+    {
+        Assert.That(_driver, Is.Not.Null);
+
+        NavigateTo($"{BaseUrl}/Spaceships");
+        var initialRowCount = CountElements(By.CssSelector("table tbody tr"));
+
+        NavigateTo($"{BaseUrl}/Spaceships/Create");
+        WaitForElement(By.Id("Name"));
+
+        var spaceshipName = $"INVALID_CREATE_SHIP_{DateTime.UtcNow:HHmmssfff}";
+
+        FillInput(By.Id("Name"), spaceshipName);
+        FillInput(By.Id("Classification"), "Explorer");
+        SetDateTimeLocal(By.Id("BuiltDate"), new DateTime(2025, 2, 1, 12, 30, 0));
+        SetInputValue(By.Id("Crew"), "A");
+        FillInput(By.Id("EnginePower"), "5000");
+
+        Click(By.CssSelector("input[type='submit'][value='Create']"));
+
+        WaitUntil(driver => driver.Url.Contains("/Spaceships/Create", StringComparison.OrdinalIgnoreCase), TimeSpan.FromSeconds(10));
+        var crewInput = WaitForElement(By.Id("Crew"));
+        var currentValue = crewInput.GetDomProperty("value") ?? string.Empty;
+        Assert.That(currentValue, Is.Not.EqualTo("A"), "Crew input accepted invalid letter");
+
+        NavigateTo($"{BaseUrl}/Spaceships");
+        WaitUntil(_ => CountElements(By.CssSelector("table tbody tr")) <= initialRowCount, TimeSpan.FromSeconds(10));
+        Assert.That(RowExistsInTable(spaceshipName), Is.False);
+    }
+
+    [Test]
     public void Spaceships_View_Details()
     {
         Assert.That(_driver, Is.Not.Null);
