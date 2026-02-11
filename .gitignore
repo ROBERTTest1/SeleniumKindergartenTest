@@ -1,0 +1,10 @@
+bin/
+obj/
+.vs/
+.DS_Store
+*.user
+*.suo
+TestResult.xml
+TestResults/
+*.ncrunchsolution
+*.ncrunchproject
