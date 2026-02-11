@@ -79,6 +79,28 @@ public class Tests
     }
 
     [Test]
+    public void Spaceships_View_Details()
+    {
+        Assert.That(_driver, Is.Not.Null);
+
+        NavigateTo($"{BaseUrl}/Spaceships");
+
+        var firstRow = WaitForElement(By.CssSelector("table tbody tr"), TimeSpan.FromSeconds(10));
+        var spaceshipName = firstRow.FindElement(By.CssSelector("td:nth-child(2)")).Text.Trim();
+
+        var detailsLink = firstRow.FindElement(By.LinkText("Details"));
+        ClickElement(detailsLink);
+
+        WaitForPageLoad();
+
+        var detailHeading = WaitForElement(By.CssSelector("h1"), TimeSpan.FromSeconds(10));
+        Assert.That(detailHeading.Text, Does.Contain("Details"));
+
+        var pageText = WaitForElement(By.TagName("body")).Text;
+        Assert.That(pageText, Does.Contain(spaceshipName));
+    }
+
+    [Test]
     public void Kindergarten_Create_WithValidData()
     {
         Assert.That(_driver, Is.Not.Null);
@@ -108,6 +130,28 @@ public class Tests
 
         var finalRowCount = CountElements(By.CssSelector("table tbody tr"));
         Assert.That(finalRowCount, Is.GreaterThan(initialRowCount));
+    }
+
+    [Test]
+    public void Kindergarten_View_Details()
+    {
+        Assert.That(_driver, Is.Not.Null);
+
+        NavigateTo($"{BaseUrl}/Kindergarten");
+
+        var firstRow = WaitForElement(By.CssSelector("table tbody tr"), TimeSpan.FromSeconds(10));
+        var groupName = firstRow.FindElement(By.CssSelector("td:nth-child(2)")).Text.Trim();
+
+        var detailsLink = firstRow.FindElement(By.LinkText("Details"));
+        ClickElement(detailsLink);
+
+        WaitForPageLoad();
+
+        var heading = WaitForElement(By.CssSelector("h1"), TimeSpan.FromSeconds(10));
+        Assert.That(heading.Text, Does.Contain("Details"));
+
+        var pageText = WaitForElement(By.TagName("body")).Text;
+        Assert.That(pageText, Does.Contain(groupName));
     }
 
     private void FillInput(By by, string value)
@@ -147,6 +191,13 @@ public class Tests
     private void Click(By by)
     {
         var element = WaitForElement(by);
+        var executor = (IJavaScriptExecutor)_driver!;
+        executor.ExecuteScript("arguments[0].scrollIntoView({ block: 'center' });", element);
+        executor.ExecuteScript("arguments[0].click();", element);
+    }
+
+    private void ClickElement(IWebElement element)
+    {
         var executor = (IJavaScriptExecutor)_driver!;
         executor.ExecuteScript("arguments[0].scrollIntoView({ block: 'center' });", element);
         executor.ExecuteScript("arguments[0].click();", element);
