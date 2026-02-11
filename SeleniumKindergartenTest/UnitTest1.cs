@@ -40,10 +40,12 @@ public class Tests
         Assert.That(_driver, Is.Not.Null);
 
         NavigateTo($"{BaseUrl}/Spaceships");
-        WaitForElement(By.XPath("//h1[contains(normalize-space(),'Spaceships')]"));
 
-        var createButton = WaitForElement(By.CssSelector("a[href='/Spaceships/Create']"), TimeSpan.FromSeconds(20));
-        Assert.That(createButton.Displayed, Is.True);
+        var heading = WaitForElement(By.CssSelector("div.h1"), TimeSpan.FromSeconds(10));
+        Assert.That(heading.Text, Does.Contain("Spaceships"));
+        var table = WaitForElement(By.CssSelector("table"));
+
+        Assert.That(table.Displayed, Is.True);
     }
 
     [Test]
@@ -51,10 +53,15 @@ public class Tests
     {
         Assert.That(_driver, Is.Not.Null);
 
+        NavigateTo($"{BaseUrl}/Spaceships");
+        var initialRowCount = CountElements(By.CssSelector("table tbody tr"));
+
         NavigateTo($"{BaseUrl}/Spaceships/Create");
         WaitForElement(By.Id("Name"));
 
-        FillInput(By.Id("Name"), "TEST_SHIP_11");
+        var spaceshipName = $"TEST_SHIP_{DateTime.UtcNow:HHmmssfff}";
+
+        FillInput(By.Id("Name"), spaceshipName);
         FillInput(By.Id("Classification"), "Explorer");
         SetDateTimeLocal(By.Id("BuiltDate"), new DateTime(2025, 2, 1, 12, 30, 0));
         FillInput(By.Id("Crew"), "5");
@@ -62,8 +69,13 @@ public class Tests
 
         Click(By.CssSelector("input[type='submit'][value='Create']"));
 
-        var successRow = WaitForElement(By.XPath("//td[normalize-space()='TEST_SHIP_11']"), TimeSpan.FromSeconds(20));
+        var listHeading = WaitForElement(By.CssSelector("div.h1"), TimeSpan.FromSeconds(10));
+        Assert.That(listHeading.Text, Does.Contain("Spaceships"));
+        var successRow = WaitForElement(By.XPath($"//td[normalize-space()='{spaceshipName}']"), TimeSpan.FromSeconds(20));
+
         Assert.That(successRow.Displayed, Is.True);
+        var finalRowCount = CountElements(By.CssSelector("table tbody tr"));
+        Assert.That(finalRowCount, Is.GreaterThan(initialRowCount));
     }
 
     [Test]
@@ -71,9 +83,14 @@ public class Tests
     {
         Assert.That(_driver, Is.Not.Null);
 
+        NavigateTo($"{BaseUrl}/Kindergarten");
+        var initialRowCount = CountElements(By.CssSelector("table tbody tr"));
+
         NavigateTo($"{BaseUrl}/Kindergarten/Create");
 
-        FillInput(By.Id("GroupName"), "Group Alpha");
+        var groupName = $"Group {DateTime.UtcNow:HHmmss}";
+
+        FillInput(By.Id("GroupName"), groupName);
         FillInput(By.Id("KindergartenName"), "Sunshine KG");
         FillInput(By.Id("ChildrenCount"), "18");
         FillInput(By.Id("TeacherName"), "Ms. Smith");
@@ -83,10 +100,14 @@ public class Tests
 
         Click(By.CssSelector("button[type='submit'].btn-success"));
 
-        WaitForElement(By.XPath("//h1[contains(normalize-space(),'Kindergarten')]"), TimeSpan.FromSeconds(10));
+        var kindergartenHeading = WaitForElement(By.CssSelector("div.h1"), TimeSpan.FromSeconds(10));
+        Assert.That(kindergartenHeading.Text, Does.Contain("Kindergarten"));
 
-        var successRow = WaitForElement(By.XPath("//td[normalize-space()='Group Alpha']"), TimeSpan.FromSeconds(20));
+        var successRow = WaitForElement(By.XPath($"//td[normalize-space()='{groupName}']"), TimeSpan.FromSeconds(20));
         Assert.That(successRow.Displayed, Is.True);
+
+        var finalRowCount = CountElements(By.CssSelector("table tbody tr"));
+        Assert.That(finalRowCount, Is.GreaterThan(initialRowCount));
     }
 
     private void FillInput(By by, string value)
@@ -130,6 +151,8 @@ public class Tests
         executor.ExecuteScript("arguments[0].scrollIntoView({ block: 'center' });", element);
         executor.ExecuteScript("arguments[0].click();", element);
     }
+
+    private int CountElements(By by) => _driver!.FindElements(by).Count;
 
     private IWebElement WaitForElement(By by, TimeSpan? timeout = null)
     {
